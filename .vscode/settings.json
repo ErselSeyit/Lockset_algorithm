@@ -55,6 +55,8 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "set": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "optional": "cpp",
+        "fstream": "cpp"
     }
 }
