@@ -5,6 +5,8 @@ Lock::Lock(int id) : id(id), is_locked(false), holding_thread(nullptr), shared_v
 void Lock::acquire(Thread* t) {
     is_locked = true;
     holding_thread = t;
+
+    t->acquireLock(this);
 }
 
 void Lock::release(Thread* t) {
