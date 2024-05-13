@@ -14,6 +14,7 @@ public:
     void acquireLock(Lock* lock);
     void releaseLock(Lock* lock);
     bool holdsLock(Lock* lock) const;
+    std::set<Lock*> getLockset() const;
 
 private:
     int id;
