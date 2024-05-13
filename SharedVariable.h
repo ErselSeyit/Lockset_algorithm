@@ -1,17 +1,22 @@
-#include <set>
-#include "Lock.h"
+#ifndef SHAREDVARIABLE_H
+#define SHAREDVARIABLE_H
+#include <string>
+#include "Accesstype.h"
+
+class Thread;
 
 class SharedVariable {
 public:
-    SharedVariable(int id);
-    void addLock(Lock* lock);
-    void removeLock(Lock* lock);
-    bool isGuardedBy(Lock* lock) const;
-    std::set<Lock*> getLockset() const;
-    void setLockset(const std::set<Lock*>& locks); // Declaration of setLockset
-    int getId() const; // Declaration of getId
+    SharedVariable(const std::string& name);
+    SharedVariable(int id) : SharedVariable(std::to_string(id)) {}  // New constructor
+    bool isAccessed() const;
+    Thread* getAccessingThread() const;
+    void access(Thread* t, AccessType type);
+    std::string getName() const;
 
 private:
-    int id;
-    std::set<Lock*> lockset;
+    std::string name;
+    bool is_accessed;
+    Thread* accessing_thread;
 };
+#endif 

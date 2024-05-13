@@ -1,7 +1,9 @@
-#include "DataRaceDetector.h"
+#include <iostream>
 #include "Lock.h"
 #include "SharedVariable.h"
 #include "Thread.h"
+#include "Accesstype.h"
+#include "DataRaceDetector.h"  // Include the DataRaceDetector header file
 
 int main() {
     // Create DataRaceDetector
@@ -14,17 +16,23 @@ int main() {
     SharedVariable var1(1), var2(2);
 
     // Create some threads
-    Thread thread1(1), thread2(2);
+    Thread* thread1 = new Thread(1);
+    Thread* thread2 = new Thread(2);
 
     // Simulate some events
-    drd.onLockAcquire(&thread1, &lock1); // Thread 1 acquires lock 1
-    drd.onSharedVariableAccess(&thread1, &var1); // Thread 1 accesses variable 1
+    try {
+        drd.onLockAcquire(thread1, &lock1); // Thread 1 acquires lock 1
+        drd.onSharedVariableAccess(thread1, &var1, AccessType::READ); // Use AccessType::READ
 
-    drd.onLockAcquire(&thread2, &lock2); // Thread 2 acquires lock 2
-    drd.onSharedVariableAccess(&thread2, &var2); // Thread 2 accesses variable 2
+        drd.onLockAcquire(thread2, &lock2); // Thread 2 acquires lock 2
+        drd.onSharedVariableAccess(thread2, &var1, AccessType::WRITE); // Thread 2 writes to var1
+    } catch (const std::exception& e) {
+        std::cout << "Exception: " << e.what() << std::endl;
+    }
 
-    drd.onLockRelease(&thread1, &lock1); // Thread 1 releases lock 1
-    drd.onSharedVariableAccess(&thread1, &var1); // Thread 1 accesses variable 1, potential data race!
+    // Delete the Thread objects to prevent memory leaks
+    delete thread1;
+    delete thread2;
 
     return 0;
 }
