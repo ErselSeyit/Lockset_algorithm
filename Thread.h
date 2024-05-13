@@ -1,21 +1,23 @@
+// Thread.h
 #ifndef THREAD_H
 #define THREAD_H
-
-#include <set>
 #include "Lock.h"
+#include <set>
+#include <string> 
+
+class Lock;
 
 class Thread {
-private:
-    std::set<Lock*> lockset;
-    int id;
-
 public:
     Thread(int id);
+    int getId() const { return id; }
     void acquireLock(Lock* lock);
     void releaseLock(Lock* lock);
-    bool holdsLock(Lock *lock) const;
-    std::set<Lock*> getLockset() const;
-    int getId() const;
+    bool holdsLock(Lock* lock) const;
+
+private:
+    int id;
+    std::set<Lock*> lockset;
 };
 
-#endif // THREAD_H
+#endif

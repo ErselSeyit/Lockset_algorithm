@@ -1,27 +1,24 @@
+// SharedVariable.cpp
 #include "SharedVariable.h"
+#include "Accesstype.h"
+#include "Thread.h"
 
-SharedVariable::SharedVariable(int id) : id(id) {}
+SharedVariable::SharedVariable(const std::string& name) : name(name), is_accessed(false), accessing_thread(nullptr) {}
 
-void SharedVariable::addLock(Lock* lock) {
-    lockset.insert(lock);
+bool SharedVariable::isAccessed() const {
+    return is_accessed;
 }
 
-void SharedVariable::removeLock(Lock* lock) {
-    lockset.erase(lock);
+Thread* SharedVariable::getAccessingThread() const {
+    return accessing_thread;
 }
 
-bool SharedVariable::isGuardedBy(Lock* lock) const {
-    return lockset.find(lock) != lockset.end();
+void SharedVariable::access(Thread* t, AccessType type) {
+    is_accessed = true;
+    accessing_thread = t;
+    // Add code here to handle the access type (READ or WRITE)
 }
 
-std::set<Lock*> SharedVariable::getLockset() const {
-    return lockset;
-}
-
-void SharedVariable::setLockset(const std::set<Lock*>& locks) { // Add this method
-    lockset = locks;
-}
-
-int SharedVariable::getId() const { // Add this method
-    return id;
+std::string SharedVariable::getName() const {
+    return name;
 }
