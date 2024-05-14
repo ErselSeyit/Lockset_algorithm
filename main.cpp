@@ -112,41 +112,33 @@ int main()
 
     drd.locksetMainStart();
 
-    // Scenario 1
-    {
-        var1.setState(State::Virgin);
-        drd.registerSharedVariable(&var1);
-        drd.locksetThreadStart();
-        runScenario1(drd, var1);
-        drd.locksetThreadEnd();
-    }
+    // // Scenario 1
+    // {
+    //     var1.setState(State::Virgin);
+    //     drd.registerSharedVariable(&var1);
+    //     runScenario1(drd, var1);
+    // }
 
     // Scenario 2
     {
         var1.setState(State::Virgin);
         drd.registerSharedVariable(&var1);
-        drd.locksetThreadStart();
         runScenario2(drd, var1, lock1);
-        drd.locksetThreadEnd();
     }
 
-    // Scenario 3
-    {
-        var1.setState(State::Virgin);
-        drd.registerSharedVariable(&var1);
-        drd.locksetThreadStart();
-        runScenario3(drd, var1, lock1);
-        drd.locksetThreadEnd();
-    }
+    // // Scenario 3
+    // {
+    //     var1.setState(State::Virgin);
+    //     drd.registerSharedVariable(&var1);
+    //     runScenario3(drd, var1, lock1);
+    // }
 
-    // Scenario 4
-    {
-        var1.setState(State::Virgin);
-        drd.registerSharedVariable(&var1);
-        drd.locksetThreadStart();
-        runScenario4(drd, var1, lock1, lock2);
-        drd.locksetThreadEnd();
-    }
+    // // Scenario 4
+    // {
+    //     var1.setState(State::Virgin);
+    //     drd.registerSharedVariable(&var1);
+    //     runScenario4(drd, var1, lock1, lock2);
+    // }
 
     drd.locksetMainEnd();
 
