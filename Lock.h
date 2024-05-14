@@ -1,4 +1,3 @@
-// Lock.h
 #ifndef LOCK_H
 #define LOCK_H
 
@@ -6,18 +5,20 @@
 #include "SharedVariable.h"
 #include <set>
 
-class SharedVariable;
 class Thread;
+class SharedVariable;
+
 class Lock
 {
 public:
     Lock(int id);
-    void acquire(Thread *t);
+    void acquire(Thread *t, bool writeMode, SharedVariable *v);
     void release(Thread *t);
     bool isLocked() const;
     Thread *getHoldingThread() const;
     SharedVariable *getSharedVariable() const;
     void setSharedVariable(SharedVariable *v);
+    int getId() const;
 
 private:
     int id;
