@@ -174,14 +174,19 @@ void DataRaceDetector::initializeBarrier(pthread_barrier_t *barrier, const pthre
     pthread_barrier_init(barrier, attr, count);
     this->barrier = *barrier;
     barrierCount = count;
+
+    std::cout << "Barrier initialized with count " << count << std::endl;
 }
 
 void DataRaceDetector::barrierWait()
 {
     pthread_barrier_wait(&barrier);
     pthread_mutex_lock(&detectorMutex);
+
+    std::cout << "All threads have reached the barrier" << std::endl;
     for (auto &var : sharedVariables)
     {
+        std::cout << "Resetting state of variable " << var->getName() << std::endl;
         var->setState(State::Clean);
     }
     pthread_mutex_unlock(&detectorMutex);
