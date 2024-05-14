@@ -1,5 +1,6 @@
 #include "Thread.h"
 #include "Lock.h"
+#include <iostream>
 
 Thread::Thread(int id) : id(id) {}
 

@@ -2,7 +2,7 @@
 #define THREAD_H
 
 #include <set>
-#include <string>
+#include "Lock.h"
 
 class Lock; // Forward declaration
 
@@ -12,14 +12,16 @@ private:
     int id;
     std::set<Lock *> locksHeld;
     std::set<Lock *> writeLocksHeld;
+    
 
 public:
     Thread(int id);
     int getId() const;
     const std::set<Lock *> &getLockset() const;
     const std::set<Lock *> &getWriteLockset() const;
+
     void acquireLock(Lock *lock, bool writeMode);
     void releaseLock(Lock *lock);
 };
 
-#endif
+#endif // THREAD_H

@@ -1,21 +1,23 @@
 #include "Lock.h"
+#include "Thread.h"
+#include <iostream>
 
 Lock::Lock(int id) : id(id), is_locked(false), holding_thread(nullptr), shared_variable(nullptr) {}
 
-void Lock::acquire(Thread *t)
+void Lock::acquire(Thread *t, bool writeMode, SharedVariable *v)
 {
     is_locked = true;
     holding_thread = t;
-    t->acquireLock(this, true); // Assume write mode for simplicity
+    shared_variable = v;
+    t->acquireLock(this, writeMode);
 }
 
 void Lock::release(Thread *t)
 {
-    if (holding_thread == t)
-    {
-        is_locked = false;
-        holding_thread = nullptr;
-    }
+    is_locked = false;
+    holding_thread = nullptr;
+    shared_variable = nullptr;
+    t->releaseLock(this);
 }
 
 bool Lock::isLocked() const
@@ -36,4 +38,9 @@ SharedVariable *Lock::getSharedVariable() const
 void Lock::setSharedVariable(SharedVariable *v)
 {
     shared_variable = v;
+}
+
+int Lock::getId() const
+{
+    return id;
 }

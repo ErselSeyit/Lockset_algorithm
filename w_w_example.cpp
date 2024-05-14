@@ -21,7 +21,7 @@ int main()
     try
     {
         // Simulate operations by thread1
-        drd.onSharedVariableAccess(thread1, &var1, AccessType::WRITE); // Thread 1 writes to var1
+        drd.onSharedVariableAccess(thread1, &var1, AccessType::WRITE);  // Thread 1 writes to var1
 
         // Simulate operations by thread2
         drd.onSharedVariableAccess(thread2, &var1, AccessType::WRITE); // Thread 2 writes to var1

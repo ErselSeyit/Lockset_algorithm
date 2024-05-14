@@ -5,43 +5,150 @@
 #include "Accesstype.h"
 #include "DataRaceDetector.h" // Include the DataRaceDetector header file
 
-int main()
+void runScenario1(DataRaceDetector &drd, SharedVariable &var1)
 {
-    // Create DataRaceDetector
-    DataRaceDetector drd;
+    // Create threads for scenario 1
+    Thread thread1(1);
+    Thread thread2(2);
 
-    // Create additional locks
-    Lock lock3(3), lock4(4);
-
-    // Create additional shared variables
-    SharedVariable var2(2), var3(3);
-
-    // Create additional threads
-    Thread *thread3 = new Thread(3);
-    Thread *thread4 = new Thread(4);
-
-    // Simulate some events
+    std::cout << "\nScenario 1: Data race detected" << std::endl;
     try
     {
-        // Simulate operations by thread3
-        drd.onLockAcquire(thread3, &lock3, true);                      // Thread 3 acquires lock 3 in write mode
-        drd.onSharedVariableAccess(thread3, &var2, AccessType::READ);  // Thread 3 reads from var2
-        drd.onSharedVariableAccess(thread3, &var3, AccessType::WRITE); // Thread 3 writes to var3
-        drd.onLockRelease(thread3, &lock3);                            // Thread 3 releases lock 3
-
-        // Simulate operations by thread4
-        drd.onLockAcquire(thread4, &lock4, true);                      // Thread 4 acquires lock 4 in write mode
-        drd.onSharedVariableAccess(thread4, &var2, AccessType::WRITE); // Thread 4 writes to var2
-        drd.onLockRelease(thread4, &lock4);                            // Thread 4 releases lock 4
+        drd.onSharedVariableAccess(&thread1, &var1, AccessType::WRITE); // Thread 1 writes var1 without holding a lock
+        drd.onSharedVariableAccess(&thread2, &var1, AccessType::READ);  // Thread 2 reads var1 without holding a lock
     }
     catch (const std::exception &e)
     {
         std::cout << "Exception: " << e.what() << std::endl;
     }
 
-    // Cleanup to prevent memory leaks
-    delete thread3;
-    delete thread4;
+    std::cout << "End of scenario 1" << std::endl;
+}
+void runScenario2(DataRaceDetector &drd, SharedVariable &var1, Lock &lock1)
+{
+    // Create threads for scenario 2
+    Thread thread1(1);
+    Thread thread2(2);
+
+    std::cout << "\nScenario 2: Correct usage of locks preventing data races" << std::endl;
+    try
+    {
+        drd.onLockAcquire(&thread1, &lock1, true, &var1);               // Thread 1 acquires lock1 in write mode
+        drd.onSharedVariableAccess(&thread1, &var1, AccessType::WRITE); // Thread 1 writes var1
+        drd.onLockRelease(&thread1, &lock1, &var1);                     // Thread 1 releases lock1
+
+        drd.onLockAcquire(&thread2, &lock1, false, &var1);             // Thread 2 acquires lock1 in read mode
+        drd.onSharedVariableAccess(&thread2, &var1, AccessType::READ); // Thread 2 reads var1
+        drd.onLockRelease(&thread2, &lock1, &var1);                    // Thread 2 releases lock1
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "Exception: " << e.what() << std::endl;
+    }
+
+    std::cout << "End of scenario 2" << std::endl;
+}
+void runScenario3(DataRaceDetector &drd, SharedVariable &var1, Lock &lock1)
+{
+    // Create threads for scenario 3
+    Thread thread1(1);
+    Thread thread2(2);
+
+    std::cout << "\nScenario 3: Mixed read/write access with locks" << std::endl;
+    try
+    {
+        drd.onLockAcquire(&thread1, &lock1, true, &var1);               // Thread 1 acquires lock1 in write mode
+        drd.onSharedVariableAccess(&thread1, &var1, AccessType::WRITE); // Thread 1 writes var1
+
+        drd.onLockAcquire(&thread2, &lock1, false, &var1);             // Thread 2 acquires lock1 in read mode
+        drd.onSharedVariableAccess(&thread2, &var1, AccessType::READ); // Thread 2 reads var1
+
+        drd.onLockRelease(&thread1, &lock1, &var1); // Thread 1 releases lock1
+        drd.onLockRelease(&thread2, &lock1, &var1); // Thread 2 releases lock1
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "Exception: " << e.what() << std::endl;
+    }
+
+    std::cout << "End of scenario 3" << std::endl;
+}
+void runScenario4(DataRaceDetector &drd, SharedVariable &var1, Lock &lock1, Lock &lock2)
+{
+    // Create threads for scenario 4
+    Thread thread1(1);
+    Thread thread2(2);
+
+    std::cout << "\nScenario 4: Nested locks" << std::endl;
+    try
+    {
+        drd.onLockAcquire(&thread1, &lock1, true, &var1);               // Thread 1 acquires lock1 in write mode
+        drd.onLockAcquire(&thread1, &lock2, true, &var1);               // Thread 1 acquires lock2 in write mode
+        drd.onSharedVariableAccess(&thread1, &var1, AccessType::WRITE); // Thread 1 writes var1
+
+        drd.onLockAcquire(&thread2, &lock1, false, &var1);             // Thread 2 acquires lock1 in read mode
+        drd.onSharedVariableAccess(&thread2, &var1, AccessType::READ); // Thread 2 reads var1
+
+        drd.onLockRelease(&thread1, &lock2, &var1); // Thread 1 releases lock2
+        drd.onLockRelease(&thread1, &lock1, &var1); // Thread 1 releases lock1
+        drd.onLockRelease(&thread2, &lock1, &var1); // Thread 2 releases lock1
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << "Exception: " << e.what() << std::endl;
+    }
+
+    std::cout << "End of scenario 4" << std::endl;
+}
+
+int main()
+{
+    DataRaceDetector drd;
+
+    Lock lock1(1);
+    Lock lock2(2);
+
+    SharedVariable var1("var1");
+
+    drd.locksetMainStart();
+
+    // Scenario 1
+    {
+        var1.setState(State::Virgin);
+        drd.registerSharedVariable(&var1);
+        drd.locksetThreadStart();
+        runScenario1(drd, var1);
+        drd.locksetThreadEnd();
+    }
+
+    // Scenario 2
+    {
+        var1.setState(State::Virgin);
+        drd.registerSharedVariable(&var1);
+        drd.locksetThreadStart();
+        runScenario2(drd, var1, lock1);
+        drd.locksetThreadEnd();
+    }
+
+    // Scenario 3
+    {
+        var1.setState(State::Virgin);
+        drd.registerSharedVariable(&var1);
+        drd.locksetThreadStart();
+        runScenario3(drd, var1, lock1);
+        drd.locksetThreadEnd();
+    }
+
+    // Scenario 4
+    {
+        var1.setState(State::Virgin);
+        drd.registerSharedVariable(&var1);
+        drd.locksetThreadStart();
+        runScenario4(drd, var1, lock1, lock2);
+        drd.locksetThreadEnd();
+    }
+
+    drd.locksetMainEnd();
 
     return 0;
 }
