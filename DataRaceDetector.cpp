@@ -59,39 +59,14 @@ void DataRaceDetector::locksetMainEnd()
     }
 }
 
-void DataRaceDetector::locksetThreadStart()
-{
-    pthread_mutex_lock(&detectorMutex);
-    Thread *t = new Thread(pthread_self());
-    threads.insert(t);
-    pthread_mutex_unlock(&detectorMutex);
-}
-
-void DataRaceDetector::locksetThreadEnd()
-{
-    pthread_mutex_lock(&detectorMutex);
-    Thread *t = nullptr;
-    for (auto &thread : threads)
-    {
-        if (thread->getId() == pthread_self())
-        {
-            t = thread;
-            break;
-        }
-    }
-    if (t)
-    {
-        threads.erase(t);
-        delete t;
-    }
-    pthread_mutex_unlock(&detectorMutex);
-}
-
 void DataRaceDetector::onLockAcquire(Thread *t, Lock *l, bool writeMode, SharedVariable *v)
 {
+
     pthread_mutex_lock(&detectorMutex);
     l->acquire(t, writeMode, v);
     t->acquireLock(l, writeMode);
+
+    std::cout << "Thread " << t->getId() << " acquired lock " << l->getId() << " with " << (writeMode ? "WRITE" : "READ") << " access on variable " << v->getName() << std::endl;
     pthread_mutex_unlock(&detectorMutex);
 }
 
@@ -101,8 +76,10 @@ void DataRaceDetector::onLockRelease(Thread *t, Lock *l, SharedVariable *v)
     l->release(t);
     t->releaseLock(l);
     v->releaseThread(t);
+    std::cout << "Thread " << t->getId() << " released lock " << l->getId() << " on variable " << v->getName() << std::endl;
     pthread_mutex_unlock(&detectorMutex);
 }
+
 void DataRaceDetector::onSharedVariableAccess(Thread *t, SharedVariable *v, AccessType type)
 {
     pthread_mutex_lock(&detectorMutex);
@@ -179,6 +156,11 @@ bool DataRaceDetector::hasCommonLocks(const Thread *t1, const Thread *t2)
     }
 
     commonLocks = intersect(t1->getLockset(), t2->getWriteLockset());
+    if (!commonLocks.empty())
+    {
+        return true;
+    }
+    commonLocks = intersect(t1->getWriteLockset(), t2->getWriteLockset());
     if (!commonLocks.empty())
     {
         return true;
