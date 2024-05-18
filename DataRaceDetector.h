@@ -29,7 +29,6 @@ public:
     void reportDataRace(Thread *t, SharedVariable *v);
 
 private:
-    pthread_mutex_t detectorMutex;
     pthread_barrier_t barrier;
     int barrierCount;
     bool dataRaceDetected;
