@@ -3,7 +3,8 @@
 #include "Thread.h"
 #include "Lock.h"
 #include <iostream>
-SharedVariable::SharedVariable(const std::string &name) : name(name), is_accessed(false), accessing_thread(nullptr), state(State::Virgin) {}
+SharedVariable::SharedVariable(const std::string &name)
+    : name(name), is_accessed(false), accessing_thread(nullptr), state(State::Virgin) {}
 
 bool SharedVariable::isAccessed() const
 {
@@ -22,7 +23,7 @@ Thread *SharedVariable::releaseThread(Thread *t)
         is_accessed = false;
         accessing_thread = nullptr;
     }
-    return accessing_thread;
+    return t;
 }
 
 void SharedVariable::access(Thread *t, AccessType type)
@@ -30,30 +31,37 @@ void SharedVariable::access(Thread *t, AccessType type)
     is_accessed = true;
     accessing_thread = t;
 
+    // std out state
+
+    std::cout << " ************Thread " << t->getId() << " accessed variable " << name
+              << " with " << (type == AccessType::READ ? "READ" : "WRITE") << " access. State  " << SharedVariable::stateToString(state) << std::endl;
+
     switch (state)
     {
     case State::Virgin:
-        state = (type == AccessType::READ) ? State::Exclusive : State::Initializing;
+        state = (type == AccessType::WRITE) ? State::Initializing : State::Exclusive;
         break;
     case State::Initializing:
-        state = (type == AccessType::READ) ? State::Shared : State::Exclusive;
+        state = (type == AccessType::WRITE) ? State::SharedModified : State::Shared;
         break;
     case State::Exclusive:
-        state = (type == AccessType::READ) ? State::Exclusive : State::SharedModified;
+        if (type == AccessType::WRITE)
+        {
+            state = State::SharedModified;
+        }
         break;
     case State::Shared:
-        state = (type == AccessType::READ) ? State::Shared : State::SharedModified;
-        break;
     case State::SharedModified:
-        state = State::SharedModified;
+        if (type == AccessType::WRITE)
+        {
+            state = State::SharedModified;
+        }
         break;
-    case State::Clean:
-        state = State::Exclusive;
-        break;
-    case State::Empty:
+    default:
         break;
     }
 }
+
 std::string SharedVariable::getName() const
 {
     return name;
@@ -67,12 +75,6 @@ State SharedVariable::getState() const
 void SharedVariable::setState(State newState)
 {
     state = newState;
-}
-
-std::set<Lock *> &SharedVariable::getCandidateLocks()
-{
-
-    return candidateLocks;
 }
 
 std::string SharedVariable::stateToString(State state)
@@ -96,52 +98,4 @@ std::string SharedVariable::stateToString(State state)
     default:
         return "Unknown";
     }
-}
-
-std::string SharedVariable::stateToStringShort(State state)
-{
-    switch (state)
-    {
-    case State::Virgin:
-        return "V";
-    case State::Initializing:
-        return "I";
-    case State::Exclusive:
-        return "E";
-    case State::Shared:
-        return "S";
-    case State::SharedModified:
-        return "SM";
-    case State::Clean:
-        return "C";
-    case State::Empty:
-        return "E";
-    default:
-        return "U";
-    }
-}
-
-void SharedVariable::addCandidateLock(Lock *lock)
-{
-    candidateLocks.insert(lock);
-}
-
-void SharedVariable::removeCandidateLock(Lock *lock)
-{
-    candidateLocks.erase(lock);
-}
-
-void SharedVariable::clearCandidateLocks()
-{
-    candidateLocks.clear();
-}
-
-void SharedVariable::printCandidateLocks()
-{
-    std::cout << "Candidate locks for variable " << name << ": ";
-    for (Lock *lock : candidateLocks)
-    {
-        std::cout << lock->getId() << " ";
-    }
-    std::cout << std::endl;
 }
