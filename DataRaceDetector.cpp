@@ -1,28 +1,27 @@
 #include "DataRaceDetector.h"
-#include <algorithm>
 #include <iostream>
-#include "Accesstype.h"
-#include "Lock.h"
-#include "SharedVariable.h"
-#include "Thread.h"
+#include <algorithm>
 
-DataRaceDetector::DataRaceDetector() : dataRaceDetected(false), barrierCount(0) {}
+DataRaceDetector::DataRaceDetector() : dataRaceDetected(false), barrierCount(0), numAccesses(0), numLockAcquisitions(0), numLockReleases(0), numDataRaces(0) {}
 
 DataRaceDetector::~DataRaceDetector() {}
 
 void DataRaceDetector::registerThread(Thread *t)
 {
     threads.insert(t);
+    std::cout << "Thread " << t->getId() << " registered." << std::endl;
 }
 
 void DataRaceDetector::unregisterThread(Thread *t)
 {
     threads.erase(t);
+    std::cout << "Thread " << t->getId() << " unregistered." << std::endl;
 }
 
 void DataRaceDetector::registerSharedVariable(SharedVariable *v)
 {
     sharedVariables.push_back(v);
+    std::cout << "Shared variable " << v->getName() << " registered." << "With state  " << v->stateToString(v->getState()) << std::endl;
 }
 
 void DataRaceDetector::locksetMainStart()
@@ -31,6 +30,11 @@ void DataRaceDetector::locksetMainStart()
     sharedVariables.clear();
     threads.clear();
     mutexes.clear();
+    numAccesses = 0;
+    numLockAcquisitions = 0;
+    numLockReleases = 0;
+    numDataRaces = 0;
+    std::cout << "Data race detector initialized." << std::endl;
 }
 
 void DataRaceDetector::locksetMainEnd()
@@ -50,6 +54,10 @@ void DataRaceDetector::onLockAcquire(Thread *t, Lock *l, bool writeMode, SharedV
 {
     l->acquire(t, writeMode, v);
     t->acquireLock(l, writeMode);
+    numLockAcquisitions++;
+
+    std::cout << "Thread " << t->getId() << " acquired lock " << l->getId()
+              << " with " << (writeMode ? "WRITE" : "READ") << " access on variable " << v->getName() << std::endl;
 }
 
 void DataRaceDetector::onLockRelease(Thread *t, Lock *l, SharedVariable *v)
@@ -57,10 +65,16 @@ void DataRaceDetector::onLockRelease(Thread *t, Lock *l, SharedVariable *v)
     l->release(t);
     t->releaseLock(l);
     v->releaseThread(t);
+    numLockReleases++;
+
+    std::cout << "Thread " << t->getId() << " released lock " << l->getId()
+              << " on variable " << v->getName() << std::endl;
 }
 
 void DataRaceDetector::onSharedVariableAccess(Thread *t, SharedVariable *v, AccessType type)
 {
+    numAccesses++;
+
     std::cout << "Thread " << t->getId() << " is trying to access variable " << v->getName()
               << " with " << (type == AccessType::READ ? "READ" : "WRITE") << " access." << std::endl;
 
@@ -84,6 +98,7 @@ void DataRaceDetector::onSharedVariableAccess(Thread *t, SharedVariable *v, Acce
                     std::cout << "Thread " << t->getId() << " cannot access variable " << v->getName()
                               << " with WRITE access because it is already being accessed by thread " << accessingThread->getId() << std::endl;
                     dataRaceDetected = true;
+                    numDataRaces++;
                     reportDataRace(t, v);
                 }
             }
@@ -98,6 +113,7 @@ void DataRaceDetector::onSharedVariableAccess(Thread *t, SharedVariable *v, Acce
                               << " with READ access because it is already being accessed by thread " << accessingThread->getId()
                               << " with WRITE access." << std::endl;
                     dataRaceDetected = true;
+                    numDataRaces++;
                     reportDataRace(t, v);
                 }
             }
