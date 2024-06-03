@@ -80,6 +80,11 @@ int main()
     std::cout << "Scenario 2 execution time: " << elapsed2.count() << " seconds\n";
 
     drd.locksetMainEnd();
-
+    // Print summary report
+    std::cout << "\nSummary Report:\n";
+    std::cout << "Total accesses: " << drd.numAccesses << "\n";
+    std::cout << "Total lock acquisitions: " << drd.numLockAcquisitions << "\n";
+    std::cout << "Total lock releases: " << drd.numLockReleases << "\n";
+    std::cout << "Total data races detected: " << drd.numDataRaces << "\n";
     return 0;
 }
