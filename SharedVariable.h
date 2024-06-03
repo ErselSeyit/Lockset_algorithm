@@ -36,6 +36,7 @@ public:
     bool isAccessed() const;
     Thread *getAccessingThread() const;
     Thread *releaseThread(Thread *t);
+    void reset();
     std::string getName() const;
     void access(Thread *t, AccessType type);
     State getState() const;

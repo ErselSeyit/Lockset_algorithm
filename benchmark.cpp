@@ -16,14 +16,15 @@ void threadFunctionCorrect(int threadId)
 
     // Register thread and shared variable
     drd.registerThread(&thread);
+
+    std::cout << "ON MAIN variable " << var1.getName() << " registered." << "With state  " << var1.stateToString(var1.getState()) << std::endl;
     drd.registerSharedVariable(&var1);
 
     // Acquire lock
     drd.onLockAcquire(&thread, &lock1, true, &var1);
 
-    // Access shared variable
+    // Access shared variable (this call will update the state)
     drd.onSharedVariableAccess(&thread, &var1, AccessType::WRITE);
-    var1.access(&thread, AccessType::WRITE); // Simulate access
 
     // Release lock
     drd.onLockRelease(&thread, &lock1, &var1);
@@ -60,7 +61,7 @@ int main()
     t2.join();
 
     // Reset the state of var1 for the next scenario
-    var1.setState(State::Virgin);
+    var1.reset();
 
     // Scenario 2: Incorrect usage of locks
     std::cout << "\nScenario 2: Incorrect usage of locks leading to data races\n";

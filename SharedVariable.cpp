@@ -3,6 +3,7 @@
 #include "Thread.h"
 #include "Lock.h"
 #include <iostream>
+
 SharedVariable::SharedVariable(const std::string &name)
     : name(name), is_accessed(false), accessing_thread(nullptr), state(State::Virgin) {}
 
@@ -25,41 +26,71 @@ Thread *SharedVariable::releaseThread(Thread *t)
     }
     return t;
 }
-
+void SharedVariable::reset()
+{
+    is_accessed = false;
+    accessing_thread = nullptr;
+    state = State::Virgin;
+}
 void SharedVariable::access(Thread *t, AccessType type)
 {
     is_accessed = true;
     accessing_thread = t;
 
-    // std out state
-
-    std::cout << " ************Thread " << t->getId() << " accessed variable " << name
+    std::cout << " Thread " << t->getId() << " accessed variable " << name
               << " with " << (type == AccessType::READ ? "READ" : "WRITE") << " access. State  " << SharedVariable::stateToString(state) << std::endl;
 
     switch (state)
     {
     case State::Virgin:
-        state = (type == AccessType::WRITE) ? State::Initializing : State::Exclusive;
+        if (type == AccessType::WRITE)
+        {
+            state = State::Initializing;
+        }
+        else
+        {
+            state = State::Exclusive;
+        }
         break;
+
     case State::Initializing:
-        state = (type == AccessType::WRITE) ? State::SharedModified : State::Shared;
+        if (type == AccessType::WRITE)
+        {
+            state = State::SharedModified;
+        }
+        else
+        {
+            state = State::Shared;
+        }
         break;
+
     case State::Exclusive:
         if (type == AccessType::WRITE)
         {
             state = State::SharedModified;
         }
+        else if (type == AccessType::READ)
+        {
+            state = State::Shared;
+        }
         break;
+
     case State::Shared:
-    case State::SharedModified:
         if (type == AccessType::WRITE)
         {
             state = State::SharedModified;
         }
         break;
+
+    case State::SharedModified:
+        // No state change for further accesses in SharedModified state
+        break;
+
     default:
         break;
     }
+
+    std::cout << "State after access: " << SharedVariable::stateToString(state) << std::endl;
 }
 
 std::string SharedVariable::getName() const
