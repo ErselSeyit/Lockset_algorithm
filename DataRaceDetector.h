@@ -27,11 +27,21 @@ public:
     void locksetThreadStart();
     void locksetThreadEnd();
     void reportDataRace(Thread *t, SharedVariable *v);
+        // Tracking data
+    int numAccesses;
+    int numLockAcquisitions;
+    int numLockReleases;
+    int numDataRaces;
 
 private:
     pthread_barrier_t barrier;
     int barrierCount;
     bool dataRaceDetected;
+
+    
+
+
+
     std::set<Thread *> threads;
     std::vector<SharedVariable *> sharedVariables;
     std::vector<pthread_mutex_t *> mutexes;

@@ -1,79 +1,92 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include "Lock.h"
 #include "SharedVariable.h"
 #include "Thread.h"
 #include "Accesstype.h"
-#include "DataRaceDetector.h" // Include the DataRaceDetector header file
-#include <pthread.h>
-#include <tuple>
-#include "../../usr/include/c++/9/tr1/tuple"
+#include "DataRaceDetector.h"
 
-void *threadFunction(void *arg);
-void runBarrierScenario(DataRaceDetector &drd, SharedVariable &var1, Lock &lock1, pthread_barrier_t &barrier);
+DataRaceDetector drd;
+Lock lock1(1);
+SharedVariable var1("var1");
+
+void threadFunctionCorrect(int threadId)
+{
+    Thread thread(threadId);
+
+    // Register thread and shared variable
+    drd.registerThread(&thread);
+
+    std::cout << "ON MAIN variable " << var1.getName() << " registered." << "With state  " << var1.stateToString(var1.getState()) << std::endl;
+    drd.registerSharedVariable(&var1);
+
+    // Acquire lock
+    drd.onLockAcquire(&thread, &lock1, true, &var1);
+
+    // Access shared variable (this call will update the state)
+    drd.onSharedVariableAccess(&thread, &var1, AccessType::WRITE);
+
+    // Release lock
+    drd.onLockRelease(&thread, &lock1, &var1);
+
+    // Unregister thread
+    drd.unregisterThread(&thread);
+}
+
+void threadFunctionIncorrect(int threadId)
+{
+    Thread thread(threadId);
+
+    // Register thread and shared variable
+    drd.registerThread(&thread);
+    drd.registerSharedVariable(&var1);
+
+    // Access shared variable without acquiring lock
+    drd.onSharedVariableAccess(&thread, &var1, AccessType::WRITE);
+    var1.access(&thread, AccessType::WRITE); // Simulate access
+
+    // Unregister thread
+    drd.unregisterThread(&thread);
+}
 
 int main()
 {
-    DataRaceDetector drd;
-
-    Lock lock1(1);
-    Lock lock2(2);
-
-    SharedVariable var1("var1");
-
     drd.locksetMainStart();
 
-    // Barrier Scenario
-    pthread_barrier_t barrier;
-    pthread_barrier_init(&barrier, NULL, 2); // Initialize barrier for 2 threads
+    // Scenario 1: Correct usage of locks
+    auto start1 = std::chrono::high_resolution_clock::now();
+    std::cout << "Scenario 1: Correct usage of locks preventing data races\n";
+    std::thread t1(threadFunctionCorrect, 1);
+    std::thread t2(threadFunctionCorrect, 2);
+    t1.join();
+    t2.join();
+    auto end1 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed1 = end1 - start1;
+    std::cout << "Scenario 1 execution time: " << elapsed1.count() << " seconds\n";
 
-    drd.initializeBarrier(&barrier, NULL, 2);
+    // Reset the state of var1 for the next scenario
+    var1.reset();
 
-    runBarrierScenario(drd, var1, lock1, barrier);
-
-    pthread_barrier_destroy(&barrier); // Destroy the barrier
+    // Scenario 2: Incorrect usage of locks
+    auto start2 = std::chrono::high_resolution_clock::now();
+    std::cout << "\nScenario 2: Incorrect usage of locks leading to data races\n";
+    std::thread t3(threadFunctionIncorrect, 3);
+    std::thread t4(threadFunctionIncorrect, 4);
+    t3.join();
+    t4.join();
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed2 = end2 - start2;
+    std::cout << "Scenario 2 execution time: " << elapsed2.count() << " seconds\n";
 
     drd.locksetMainEnd();
 
+    // Print summary report
+    std::cout << "\nSummary Report:\n";
+    std::cout << "Total accesses: " << drd.numAccesses << "\n";
+    std::cout << "Total lock acquisitions: " << drd.numLockAcquisitions << "\n";
+    std::cout << "Total lock releases: " << drd.numLockReleases << "\n";
+    std::cout << "Total data races detected: " << drd.numDataRaces << "\n";
+
     return 0;
-}
-
-void runBarrierScenario(DataRaceDetector &drd, SharedVariable &var1, Lock &lock1, pthread_barrier_t &barrier)
-{
-    Thread thread1(1);
-    Thread thread2(2);
-
-    pthread_t pthread1, pthread2;
-
-    auto threadArg1 = std::make_tuple(&drd, &var1, &lock1, &barrier, &thread1);
-    auto threadArg2 = std::make_tuple(&drd, &var1, &lock1, &barrier, &thread2);
-
-    pthread_create(&pthread1, NULL, threadFunction, &threadArg1);
-    pthread_create(&pthread2, NULL, threadFunction, &threadArg2);
-
-    pthread_join(pthread1, NULL);
-    pthread_join(pthread2, NULL);
-}
-
-void *threadFunction(void *arg)
-{
-    auto tuple = *reinterpret_cast<std::tuple<DataRaceDetector *, SharedVariable *, Lock *, pthread_barrier_t *, Thread *> *>(arg);
-    DataRaceDetector *drd = std::get<0>(tuple);
-    SharedVariable *var1 = std::get<1>(tuple);
-    Lock *lock1 = std::get<2>(tuple);
-    pthread_barrier_t *barrier = std::get<3>(tuple);
-    Thread *thread = std::get<4>(tuple);
-    // Phase 1: Acquire lock and write to shared variable
-    drd->onLockAcquire(thread, lock1, true, var1);
-    drd->onSharedVariableAccess(thread, var1, AccessType::WRITE);
-    drd->onLockRelease(thread, lock1, var1);
-
-    // Wait at barrier
-    drd->barrierWait();
-
-    // Phase 2: Acquire lock and read from shared variable
-    drd->onLockAcquire(thread, lock1, false, var1);
-    drd->onSharedVariableAccess(thread, var1, AccessType::READ);
-    drd->onLockRelease(thread, lock1, var1);
-
-    return NULL;
 }
