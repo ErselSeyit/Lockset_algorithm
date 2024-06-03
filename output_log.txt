@@ -1,0 +1,59 @@
+
+Scenario 1: Correct usage of locks preventing data races
+Thread 1 execution time: 0.000157214 seconds
+Thread 2 execution time: 0.000273187 seconds
+Scenario 1: Correct usage of locks preventing data races execution time: 0.000422659 seconds
+Scenario 1: Correct usage of locks preventing data races - Total accesses: 2
+Scenario 1: Correct usage of locks preventing data races - Total lock acquisitions: 2
+Scenario 1: Correct usage of locks preventing data races - Total lock releases: 2
+Scenario 1: Correct usage of locks preventing data races - Total data races detected: 0
+
+Scenario 2: Incorrect usage of locks leading to data races
+Thread 3 execution time: 8.215e-05 seconds
+Thread 4 execution time: 0.000184034 seconds
+Scenario 2: Incorrect usage of locks leading to data races execution time: 0.000248383 seconds
+Scenario 2: Incorrect usage of locks leading to data races - Total accesses: 4
+Scenario 2: Incorrect usage of locks leading to data races - Total lock acquisitions: 2
+Scenario 2: Incorrect usage of locks leading to data races - Total lock releases: 2
+Scenario 2: Incorrect usage of locks leading to data races - Total data races detected: 1
+
+Scenario 3: Multiple locks protecting the same variable
+Thread 5 execution time: 0.000134768 seconds
+Thread 6 execution time: 9.2833e-05 seconds
+Scenario 3: Multiple locks protecting the same variable execution time: 0.00031091 seconds
+Scenario 3: Multiple locks protecting the same variable - Total accesses: 6
+Scenario 3: Multiple locks protecting the same variable - Total lock acquisitions: 6
+Scenario 3: Multiple locks protecting the same variable - Total lock releases: 6
+Scenario 3: Multiple locks protecting the same variable - Total data races detected: 1
+
+Scenario 4: Read-Write locks
+Thread 7 execution time: 9.1778e-05 seconds
+Thread 8 execution time: 0.00018738 seconds
+Scenario 4: Read-Write locks execution time: 0.000240949 seconds
+Scenario 4: Read-Write locks - Total accesses: 8
+Scenario 4: Read-Write locks - Total lock acquisitions: 8
+Scenario 4: Read-Write locks - Total lock releases: 8
+Scenario 4: Read-Write locks - Total data races detected: 1
+
+Scenario 5: High contention
+Thread 14 execution time: 1.75781 seconds
+Thread 13 execution time: 2.45697 seconds
+Thread 15 execution time: 2.58628 seconds
+Thread 16 execution time: 2.93099 seconds
+Thread 12 execution time: 3.06131 seconds
+Thread 11 execution time: 3.06278 seconds
+Thread 18 execution time: 3.17677 seconds
+Thread 9 execution time: 3.27095 seconds
+Thread 10 execution time: 3.38084 seconds
+Thread 17 execution time: 3.48306 seconds
+Scenario 5: High contention execution time: 3.48457 seconds
+Scenario 5: High contention - Total accesses: 10008
+Scenario 5: High contention - Total lock acquisitions: 18
+Scenario 5: High contention - Total lock releases: 18
+Scenario 5: High contention - Total data races detected: 1
+
+Overall Summary Report:
+Total accesses: 10008
+Total lock acquisitions: 18
+Total lock releases: 18
+Total data races detected: 1
