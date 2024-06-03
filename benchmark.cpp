@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <chrono>
 #include "Lock.h"
 #include "SharedVariable.h"
 #include "Thread.h"
@@ -54,21 +55,29 @@ int main()
     drd.locksetMainStart();
 
     // Scenario 1: Correct usage of locks
+    auto start1 = std::chrono::high_resolution_clock::now();
     std::cout << "Scenario 1: Correct usage of locks preventing data races\n";
     std::thread t1(threadFunctionCorrect, 1);
     std::thread t2(threadFunctionCorrect, 2);
     t1.join();
     t2.join();
+    auto end1 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed1 = end1 - start1;
+    std::cout << "Scenario 1 execution time: " << elapsed1.count() << " seconds\n";
 
     // Reset the state of var1 for the next scenario
     var1.reset();
 
     // Scenario 2: Incorrect usage of locks
+    auto start2 = std::chrono::high_resolution_clock::now();
     std::cout << "\nScenario 2: Incorrect usage of locks leading to data races\n";
     std::thread t3(threadFunctionIncorrect, 3);
     std::thread t4(threadFunctionIncorrect, 4);
     t3.join();
     t4.join();
+    auto end2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed2 = end2 - start2;
+    std::cout << "Scenario 2 execution time: " << elapsed2.count() << " seconds\n";
 
     drd.locksetMainEnd();
 
