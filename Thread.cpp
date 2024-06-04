@@ -1,22 +1,35 @@
-// Thread.cpp
 #include "Thread.h"
+#include "Lock.h"
+#include <iostream>
 
-Thread::Thread(int id) : id(id) {
-    lockset = std::set<Lock*>();
+Thread::Thread(int id) : id(id) {}
+
+int Thread::getId() const
+{
+    return id;
 }
 
-void Thread::acquireLock(Lock* lock) {
-    lockset.insert(lock);
+const std::set<Lock *> &Thread::getLockset() const
+{
+    return locksHeld;
 }
 
-void Thread::releaseLock(Lock* lock) {
-    lockset.erase(lock);
+const std::set<Lock *> &Thread::getWriteLockset() const
+{
+    return writeLocksHeld;
 }
 
-bool Thread::holdsLock(Lock* lock) const {
-    return lockset.find(lock) != lockset.end();
+void Thread::acquireLock(Lock *lock, bool writeMode)
+{
+    locksHeld.insert(lock);
+    if (writeMode)
+    {
+        writeLocksHeld.insert(lock);
+    }
 }
 
-std::set<Lock*> Thread::getLockset() const {
-    return lockset;
+void Thread::releaseLock(Lock *lock)
+{
+    locksHeld.erase(lock);
+    writeLocksHeld.erase(lock);
 }
