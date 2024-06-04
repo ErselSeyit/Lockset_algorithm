@@ -1,10 +1,6 @@
 # Lockset_algorithm
 Eraser: A dynamic data race detector for multi-threaded programs
+ ahmetcan was here
+# To compile  and run
 
-# To compile 
-
-`g++ main.cpp Lock.cpp Thread.cpp DataRaceDetector.cpp SharedVariable.cpp -o main -pthread`
-
-# To Run
-
-`./main`
+g++ main.cpp Lock.cpp Thread.cpp DataRaceDetector.cpp SharedVariable.cpp -o main -pthread && ./main
