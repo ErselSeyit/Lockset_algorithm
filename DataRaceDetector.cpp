@@ -52,6 +52,7 @@ void DataRaceDetector::locksetMainEnd()
 
 void DataRaceDetector::onLockAcquire(Thread *t, Lock *l, bool writeMode, SharedVariable *v)
 {
+    
     l->acquire(t, writeMode, v);
     t->acquireLock(l, writeMode);
     numLockAcquisitions++;
@@ -62,14 +63,34 @@ void DataRaceDetector::onLockAcquire(Thread *t, Lock *l, bool writeMode, SharedV
 
 void DataRaceDetector::onLockRelease(Thread *t, Lock *l, SharedVariable *v)
 {
+    // 1. Ownership Verification
+    if (l->getHoldingThread() != t) { 
+        std::cerr << "Error: Thread " << t->getId() << " tried to release lock " << l->getId() << " which it doesn't own." << std::endl;
+        return; 
+    }
+
+    // 2. Update Lock and Thread State 
     l->release(t);
     t->releaseLock(l);
-    v->releaseThread(t);
+
+    // 3. Transition the Shared Variable
+    if (v->getState() == State::Exclusive) {
+        v->setState(State::Virgin); // Exclusive access complete, reset to initial state
+    } else if (v->getState() == State::SharedModified) {
+        v->setState(State::Shared); // Last writer released, transition to Shared
+    }
+    
+    // 4. Release the variable
+    v->releaseThread(t); 
+    
+    // 5. Update Statistics (optional)
     numLockReleases++;
 
+    // 6. Logging (optional)
     std::cout << "Thread " << t->getId() << " released lock " << l->getId()
               << " on variable " << v->getName() << std::endl;
 }
+
 
 void DataRaceDetector::onSharedVariableAccess(Thread *t, SharedVariable *v, AccessType type)
 {

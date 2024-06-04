@@ -2,26 +2,26 @@
 #define THREAD_H
 
 #include <set>
-#include "Lock.h"
 
-class Lock; // Forward declaration
+// Forward declaration of the Lock class
+class Lock;
 
-class Thread
-{
+class Thread {
+public:
+    Thread() : id(0) {}  // Default constructor
+    Thread(int id) : id(id) {}
+
+    int getId() const;
+    const std::set<Lock*>& getLockset() const;
+    const std::set<Lock*>& getWriteLockset() const;
+
+    void acquireLock(Lock* lock, bool writeMode);
+    void releaseLock(Lock* lock);
+
 private:
     int id;
-    std::set<Lock *> locksHeld;
-    std::set<Lock *> writeLocksHeld;
-    
-
-public:
-    Thread(int id);
-    int getId() const;
-    const std::set<Lock *> &getLockset() const;
-    const std::set<Lock *> &getWriteLockset() const;
-
-    void acquireLock(Lock *lock, bool writeMode);
-    void releaseLock(Lock *lock);
+    std::set<Lock*> locksHeld;     
+    std::set<Lock*> writeLocksHeld; 
 };
 
 #endif // THREAD_H
