@@ -1,0 +1,40 @@
+# Build artifacts
+*.o
+*.obj
+*.exe
+*.out
+a.out
+main
+main.exe
+
+# Build directories
+build/
+bin/
+obj/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+output_log.txt
+
+# Compiled examples
+examples/*.exe
+examples/barrier
+examples/benchmark
+examples/bigTest
+examples/giantTest
+examples/r_r_example
+examples/read_write_ex
+examples/w_w_example
+
