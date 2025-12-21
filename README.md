@@ -77,7 +77,7 @@ Lockset_algorithm/
 
 ## 🏗️ Building
 
-### Using Makefile (Recommended)
+### Using Makefile
 
 ```bash
 # Build the main program
@@ -94,29 +94,21 @@ make barrier
 make benchmark
 ```
 
+**Note**: If `make` is not available on Windows, you can install it via:
+- **MinGW/MSYS2**: `pacman -S make`
+- **Chocolatey**: `choco install make`
+- **WSL**: Use the Linux version
+
 ### Manual Compilation
 
-#### Main Program
+If `make` is not available, you can compile manually:
 
 ```bash
+# Main program
 g++ -std=c++11 -pthread -I./include src/main.cpp src/DataRaceDetector.cpp src/Lock.cpp src/Thread.cpp src/SharedVariable.cpp -o main
-```
 
-#### Examples
-
-```bash
 # Example: Build read_write_ex
 g++ -std=c++11 -pthread -I./include examples/read_write_ex.cpp src/DataRaceDetector.cpp src/Lock.cpp src/Thread.cpp src/SharedVariable.cpp -o examples/read_write_ex
-```
-
-### Windows (PowerShell)
-
-```powershell
-# Main program
-g++ -std=c++11 -pthread -I./include src/main.cpp src/DataRaceDetector.cpp src/Lock.cpp src/Thread.cpp src/SharedVariable.cpp -o main.exe
-
-# Run
-./main.exe
 ```
 
 ## 🚀 Usage
