@@ -1,6 +1,6 @@
-# Lockset Algorithm - Eraser Data Race Detector
+# 🔒 Lockset Algorithm - Eraser Data Race Detector
 
-A professional C++ implementation of the Eraser lockset algorithm for dynamic data race detection in multi-threaded programs.
+> A professional C++ implementation of the Eraser lockset algorithm for dynamic data race detection in multi-threaded programs. Detects potential race conditions by tracking lock acquisition patterns and shared variable access.
 
 ## 📋 Table of Contents
 
