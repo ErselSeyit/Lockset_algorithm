@@ -282,3 +282,4 @@ The Eraser algorithm is a foundational technique in:
 ---
 
 **Note**: This implementation is designed for educational and research purposes. For production use, consider established tools like ThreadSanitizer (TSan) or Helgrind.
+// Optimized for thread-safety and race condition detection
